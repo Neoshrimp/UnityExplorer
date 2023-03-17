@@ -95,8 +95,15 @@ namespace UnityExplorer.CSConsole
                 {
                     ExplorerCore.Log($"Executing startup script from '{startupPath}'...");
                     string text = File.ReadAllText(startupPath);
-                    Input.Text = text;
-                    Evaluate();
+                    if (Config.ConfigManager.Show_Startup_Script.Value)
+                    {
+                        Input.Text = text;
+                        Evaluate();
+                    }
+                    else
+                    {
+                        Evaluate(text);
+                    }
                 }
             }
             catch (Exception ex)

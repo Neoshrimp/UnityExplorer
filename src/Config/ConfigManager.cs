@@ -27,6 +27,8 @@ namespace UnityExplorer.Config
         public static ConfigElement<KeyCode> UI_MouseInspect_Keybind;
         public static ConfigElement<string> CSConsole_Assembly_Blacklist;
         public static ConfigElement<string> Reflection_Signature_Blacklist;
+        public static ConfigElement<bool> Show_Startup_Script;
+
 
         // internal configs
         internal static InternalConfigHandler InternalHandler { get; private set; }
@@ -80,6 +82,10 @@ namespace UnityExplorer.Config
             Hide_On_Startup = new("Hide On Startup",
                 "Should UnityExplorer be hidden on startup?",
                 false);
+
+            Show_Startup_Script = new("Show Startup Script",
+                "Fill Console input with 'startup.cs' content after the game is loaded.",
+                true);
 
             Startup_Delay_Time = new("Startup Delay Time",
                 "The delay on startup before the UI is created.",
@@ -139,6 +145,8 @@ namespace UnityExplorer.Config
                 "Seperate signatures with a semicolon ';'.\r\n" +
                 "For example, to blacklist Camera.main, you would add 'UnityEngine.Camera.main;'",
                 "");
+
+
         }
     }
 }

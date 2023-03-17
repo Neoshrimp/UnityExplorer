@@ -12,6 +12,30 @@ namespace UnityExplorer.Hooks
         static readonly StringBuilder evaluatorOutput;
         static readonly ScriptEvaluator scriptEvaluator = new(new StringWriter(evaluatorOutput = new StringBuilder()));
 
+
+        public static string LoadPreHookScript()
+        {
+            try
+            {
+                if (!Directory.Exists(ScriptsFolder))
+                    Directory.CreateDirectory(ScriptsFolder);
+
+                string preHookPath = Path.Combine(ScriptsFolder, "preHook.cs");
+                if (File.Exists(preHookPath))
+                {
+                    string text = File.ReadAllText(preHookPath);
+                    return text;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                ExplorerCore.LogWarning($"Exception reading preHook script file: {ex}");
+
+            }
+            return "";
+        }
+
         static HookInstance()
         {
             scriptEvaluator.Run("using System;");
@@ -19,6 +43,8 @@ namespace UnityExplorer.Hooks
             scriptEvaluator.Run("using System.Reflection;");
             scriptEvaluator.Run("using System.Collections;");
             scriptEvaluator.Run("using System.Collections.Generic;");
+            scriptEvaluator.Run(LoadPreHookScript());
+
         }
 
         // Instance
@@ -148,7 +174,7 @@ namespace UnityExplorer.Hooks
                 arguments.Add($"{FullDescriptionClean(targetMethod.DeclaringType)} __instance");
 
             if (targetMethod.ReturnType != typeof(void))
-                arguments.Add($"{FullDescriptionClean(targetMethod.ReturnType)} __result");
+                arguments.Add($"ref {FullDescriptionClean(targetMethod.ReturnType)} __result");
 
             ParameterInfo[] parameters = targetMethod.GetParameters();
 
