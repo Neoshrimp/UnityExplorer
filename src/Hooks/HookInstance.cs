@@ -17,10 +17,10 @@ namespace UnityExplorer.Hooks
         {
             try
             {
-                if (!Directory.Exists(ScriptsFolder))
-                    Directory.CreateDirectory(ScriptsFolder);
+                if (!Directory.Exists(ConsoleController.ScriptsFolder))
+                    Directory.CreateDirectory(ConsoleController.ScriptsFolder);
 
-                string preHookPath = Path.Combine(ScriptsFolder, "preHook.cs");
+                string preHookPath = Path.Combine(ConsoleController.ScriptsFolder, "preHook.cs");
                 if (File.Exists(preHookPath))
                 {
                     string text = File.ReadAllText(preHookPath);
@@ -43,7 +43,18 @@ namespace UnityExplorer.Hooks
             scriptEvaluator.Run("using System.Reflection;");
             scriptEvaluator.Run("using System.Collections;");
             scriptEvaluator.Run("using System.Collections.Generic;");
-            scriptEvaluator.Run(LoadPreHookScript());
+
+
+
+
+            var preHookSuccessful = scriptEvaluator.Run(LoadPreHookScript());
+            
+            ExplorerCore.LogWarning($"HOOOK DEEZ {preHookSuccessful}");
+
+            if (!preHookSuccessful)
+            {
+                ExplorerCore.LogWarning("Error running preHook script");
+            }
 
         }
 
