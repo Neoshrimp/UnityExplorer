@@ -8,9 +8,6 @@ using UnityExplorer.Config;
 using UnityEngine.EventSystems;
 using UniverseLib.Input;
 using UnityExplorer.Loader.Standalone;
-#if CPP
-using UnhollowerRuntimeLib;
-#endif
 
 namespace UnityExplorer
 {
@@ -97,7 +94,7 @@ namespace UnityExplorer
         {
             if (explorerFolderDest == null)
             {
-                string assemblyLocation = Uri.UnescapeDataString(new Uri(typeof(ExplorerCore).Assembly.CodeBase).AbsolutePath);
+                string assemblyLocation = Uri.UnescapeDataString(new Uri(typeof(ExplorerCore).Assembly.Location).AbsolutePath);
                 explorerFolderDest = Path.GetDirectoryName(assemblyLocation);
             }
         }

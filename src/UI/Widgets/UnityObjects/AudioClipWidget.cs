@@ -6,13 +6,8 @@ using UniverseLib.UI;
 using UniverseLib.UI.Models;
 using UniverseLib.UI.ObjectPool;
 #if CPP
-#if INTEROP
 using Il2CppInterop.Runtime;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
-#else
-using UnhollowerRuntimeLib;
-using UnhollowerBaseLib;
-#endif
 #endif
 
 namespace UnityExplorer.UI.Widgets
@@ -37,6 +32,12 @@ namespace UnityExplorer.UI.Widgets
         GameObject saveObjectRow;
         InputFieldRef savePathInput;
         GameObject cantSaveRow;
+
+        public override void UnOnfucussed()
+        {
+            base.UnOnfucussed();
+            savePathInput.Component.DeactivateInputField();
+        }
 
         public override void OnBorrowed(object target, Type targetType, ReflectionInspector inspector)
         {

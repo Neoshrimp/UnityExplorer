@@ -264,6 +264,19 @@ namespace UnityExplorer.CSConsole
                 timeOfLastCtrlR = Time.realtimeSinceStartup;
                 Evaluate(Panel.Input.Text);
             }
+            
+            if (EnableSuggestions && !settingCaretCoroutine
+                && (InputManager.GetKey(KeyCode.LeftControl) || InputManager.GetKey(KeyCode.RightControl))
+                && InputManager.GetKeyDown(KeyCode.Space)
+                && timeOfLastCtrlR.OccuredEarlierThanDefault())
+            {
+                HighlightVisibleInput(out bool inStringOrComment);
+                if (!inStringOrComment)
+                {
+                    timeOfLastCtrlR = Time.realtimeSinceStartup;
+                    Completer.CheckAutocompletes();
+                }
+            }
         }
 
         static void OnInputScrolled() => HighlightVisibleInput(out _);
@@ -273,14 +286,20 @@ namespace UnityExplorer.CSConsole
             if (SRENotSupported)
                 return;
 
-            // prevent escape wiping input
+            // If Escape was pressed, the input got cancelled which we need to undo and handle AutoComplete exit
             if (InputManager.GetKeyDown(KeyCode.Escape))
             {
+                // The cancel wipes the text so it needs to be restored
                 Input.Text = previousInput;
 
                 if (EnableSuggestions && AutoCompleteModal.CheckEscape(Completer))
                     OnAutocompleteEscaped();
 
+                // The cancel unfocused the input, we need to undo the cancel and give back focus
+                Input.Component.m_AllowInput = true;
+                Input.Component.m_WasCanceled = false;
+                // A cancel causes the caret to go back to the start, we need to undo that
+                Input.Component.caretPosition = LastCaretPosition;
                 return;
             }
 
@@ -548,9 +567,22 @@ namespace UnityExplorer.CSConsole
         public static void InsertSuggestionAtCaret(string suggestion)
         {
             settingCaretCoroutine = true;
-            Input.Text = Input.Text.Insert(LastCaretPosition, suggestion);
+            int startIdx = LastCaretPosition;
+            // get the current composition string (from caret back to last delimiter)
+            while (startIdx > 0)
+            {
+                startIdx--;
+                char c = Input.Text[startIdx];
+                if (Completer.delimiters.Contains(c) || char.IsWhiteSpace(c) || c == '.')
+                {
+                    startIdx++;
+                    break;
+                }
+            }
+            string trimmedInput = Input.Text.Remove(startIdx, LastCaretPosition - startIdx);
+            Input.Text = trimmedInput.Insert(startIdx, suggestion);
 
-            SetCaretPosition(LastCaretPosition + suggestion.Length);
+            SetCaretPosition(startIdx + suggestion.Length);
             LastCaretPosition = Input.Component.caretPosition;
         }
 
@@ -653,7 +685,7 @@ Doorstop example:
         {
             Dropdown drop = Panel.HelpDropdown;
 
-            helpDict.Add("Help", "");
+            helpDict.Add(DEFAULT_HELP_ITEM, "");
             helpDict.Add("Usings", HELP_USINGS);
             helpDict.Add("REPL", HELP_REPL);
             helpDict.Add("Classes", HELP_CLASSES);
@@ -675,6 +707,7 @@ Doorstop example:
             Panel.HelpDropdown.value = 0;
         }
 
+        internal const string DEFAULT_HELP_ITEM = "(Select Help)";
 
         internal const string STARTUP_TEXT = @"<color=#5d8556>// Welcome to the UnityExplorer C# Console!
 
